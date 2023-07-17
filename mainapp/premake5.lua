@@ -28,20 +28,14 @@ project "mainapp"
         "SDL2main"
     }
 
-    filter "action:clion"
-        postbuildcommands {
-            '{COPYDIR} "../../../%{prj.name}/rsc" "%{cfg.targetdir}"'
-        }
-
-    filter "action:not clion"
-        postbuildcommands {
-            '{COPYDIR} "rsc" "%{cfg.targetdir}/rsc"'
-        }
+    postbuildcommands {
+        '{COPYDIR} %[rsc] %[%{cfg.targetdir}/rsc]'
+    }
 
     filter "system:windows"
         prebuildcommands {
-            '{COPYFILE} "%{LibraryDirs.sdl}/SDL2.dll" "%{prj.location}/src"',
-            '{COPYFILE} "%{LibraryDirs.sdl}/SDL2.dll" "%{cfg.targetdir}"',
+            '{COPYFILE} %[%{LibraryDirs.sdl}/SDL2.dll] %[%{prj.location}/src]',
+            '{COPYFILE} %[%{LibraryDirs.sdl}/SDL2.dll] %[%{cfg.targetdir}]',
         }
 
     filter "configurations:Debug"
