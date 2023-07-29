@@ -83,13 +83,13 @@ int main(int argc, char** argv) {
 				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
 					quit = true;
 				} else if (event.key.keysym.scancode == SDL_SCANCODE_S) {
-					view.set(3, 2, view.get(3, 2) - .1);
+					view.translate(0.f, 0.f, -.1f);
 				} else if (event.key.keysym.scancode == SDL_SCANCODE_W) {
-					view.set(3, 2, view.get(3, 2) + .1);
+					view.translate(0.f, 0.f, +.1f);
 				} else if (event.key.keysym.scancode == SDL_SCANCODE_A) {
-					view.set(3, 0, view.get(3, 0) + .1);
+					view.translate(.1f, 0.f, 0.f);
 				} else if (event.key.keysym.scancode == SDL_SCANCODE_D) {
-					view.set(3, 0, view.get(3, 0) - .1);
+					view.translate(-.1f, 0.f, 0.f);
 				}
 			}
 		}

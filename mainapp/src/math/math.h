@@ -729,6 +729,7 @@ public:
         m.set(3, 0, m.get(3, 0) + dx);
         m.set(3, 1, m.get(3, 1) + dy);
         m.set(3, 2, m.get(3, 2) + dz);
+        return m;
     }
 
     Type& translate(T dx, T dy, T dz) requires (M == N && M == 4) {
