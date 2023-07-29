@@ -1,5 +1,5 @@
-
 VendorPath = "%{wks.location}/vendor"
+
 IncludeDirs = {}
 IncludeDirs.glad = (VendorPath.."/glad/include")
 IncludeDirs.sdl = (VendorPath.."/sdl2/include")

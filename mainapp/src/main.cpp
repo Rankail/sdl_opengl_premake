@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 #include "Shader.h"
+#include "math/math.h"
 
 int main(int argc, char** argv) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -28,12 +29,6 @@ int main(int argc, char** argv) {
 	}
 	
 	gladLoadGLLoader(SDL_GL_GetProcAddress);
-
-    std::cout << "OpenGL loaded"
-        << "\nVendor:   " << glGetString(GL_VENDOR)
-        << "\nRenderer: " << glGetString(GL_RENDERER)
-        << "\nVersion:  " << glGetString(GL_VERSION)
-        << std::endl;
 	
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -68,23 +63,54 @@ int main(int argc, char** argv) {
 	if (!shader.link()) {
         return -2;
     }
+
+	auto model = Matrix<4, 4, float>::unit();
+
+	auto view = Matrix<4, 4, float>::unit();
+	view.set(3, 2, -3);
+
+	auto projection = Matrix<4, 4, float>::perspective(std::numbers::pi / 4., 800.f / 600.f, 0.1f, 100.f);
 	
 	bool quit = false;
 	SDL_Event event;
+
+	uint32_t prevTime = SDL_GetTicks();
 	while (!quit) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
-			} else if (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-				quit = true;
+			} else if (event.type == SDL_KEYDOWN) {
+				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+					quit = true;
+				} else if (event.key.keysym.scancode == SDL_SCANCODE_S) {
+					view.set(3, 2, view.get(3, 2) - .1);
+				} else if (event.key.keysym.scancode == SDL_SCANCODE_W) {
+					view.set(3, 2, view.get(3, 2) + .1);
+				} else if (event.key.keysym.scancode == SDL_SCANCODE_A) {
+					view.set(3, 0, view.get(3, 0) + .1);
+				} else if (event.key.keysym.scancode == SDL_SCANCODE_D) {
+					view.set(3, 0, view.get(3, 0) - .1);
+				}
 			}
 		}
+
+		uint32_t curTime = SDL_GetTicks();
+		float dt = (curTime - prevTime) / 1000.f;
+		prevTime = curTime;
+
+		constexpr float speed = 1.f;
+		model.rotate(speed * dt, speed * dt, speed * dt);
 		
 		glClearColor(0.f, 0.1f, 0.3f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
         glBindVertexArray(vao);
 		shader.use();
+
+		shader.setMatrix("model", model);
+		shader.setMatrix("view", view);
+		shader.setMatrix("projection", projection);
+
         glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		SDL_GL_SwapWindow(window);

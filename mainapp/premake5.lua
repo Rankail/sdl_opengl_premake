@@ -1,7 +1,7 @@
 project "mainapp"
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++17"
+    cppdialect "C++20"
     staticruntime "off"
 
     targetdir ("%{wks.location}/bin/"..outputdir.."/%{prj.name}")
@@ -28,27 +28,21 @@ project "mainapp"
         "SDL2main"
     }
 
-    filter "action:clion"
-        postbuildcommands {
-            '{COPYDIR} "../../../%{prj.name}/rsc" "%{cfg.targetdir}"'
-        }
-
-    filter "action:not clion"
-        postbuildcommands {
-            '{COPYDIR} "rsc" "%{cfg.targetdir}/rsc"'
-        }
+    postbuildcommands {
+        '{COPYDIR} %[rsc] %[%{cfg.targetdir}/rsc]'
+    }
 
     filter "system:windows"
         prebuildcommands {
-            '{COPYFILE} "%{LibraryDirs.sdl}/SDL2.dll" "%{prj.location}/src"',
-            '{COPYFILE} "%{LibraryDirs.sdl}/SDL2.dll" "%{cfg.targetdir}"',
+            '{COPYFILE} %[%{LibraryDirs.sdl}/SDL2.dll] %[%{prj.location}/src]',
+            '{COPYFILE} %[%{LibraryDirs.sdl}/SDL2.dll] %[%{cfg.targetdir}]',
         }
 
-    filter "configurations:Debug"
+    filter "configurations:Debug2"
         defines { "RTS_DEBUG" }
         symbols "On"
 
-    filter "configurations:Release"
+    filter "configurations:Release2"
         defines { "RTS_NDEBUG" }
         symbols "Off"
         optimize "Full"
