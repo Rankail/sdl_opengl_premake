@@ -30,21 +30,68 @@ int main(int argc, char** argv) {
 	
 	gladLoadGLLoader(SDL_GL_GetProcAddress);
 	
-	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	
 	int w, h;
 	SDL_GetWindowSize(window, &w, &h);
 	glViewport(0, 0, w, h);
-	
+
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f, 0.5f, 0.0f
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+
+		-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f
 	};
+
+	unsigned indices[36] = {0};
+	for (int i = 0; i < 36; i++) {
+		indices[i] = (unsigned)i;
+	}
+
 
 	unsigned vbo;
 	glGenBuffers(1, &vbo);
+
+	unsigned ebo;
+	glGenBuffers(1, &ebo);
 
     unsigned vao;
     glGenVertexArrays(1, &vao);
@@ -54,8 +101,14 @@ int main(int argc, char** argv) {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 	
 	Shader shader = Shader();
 	shader.addSourceAndCompile("./rsc/basic.vert", GL_VERTEX_SHADER);
@@ -74,23 +127,19 @@ int main(int argc, char** argv) {
 	bool quit = false;
 	SDL_Event event;
 
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
+	auto objColor = Matrix<3, 1, float>(1.f, 0.5f, 0.31f);
+	auto lightPos = Matrix<3, 1, float>(1.2f, 1.0f, 2.0f);
+
 	uint32_t prevTime = SDL_GetTicks();
 	while (!quit) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
-			} else if (event.type == SDL_KEYDOWN) {
-				if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-					quit = true;
-				} else if (event.key.keysym.scancode == SDL_SCANCODE_S) {
-					view.translate(0.f, 0.f, -.1f);
-				} else if (event.key.keysym.scancode == SDL_SCANCODE_W) {
-					view.translate(0.f, 0.f, +.1f);
-				} else if (event.key.keysym.scancode == SDL_SCANCODE_A) {
-					view.translate(.1f, 0.f, 0.f);
-				} else if (event.key.keysym.scancode == SDL_SCANCODE_D) {
-					view.translate(-.1f, 0.f, 0.f);
-				}
+			} else if (event.type == SDL_MOUSEMOTION) {
+				view.rotateXZ(-event.motion.xrel / 100.);
+				view.rotateYZ(-event.motion.yrel / 100.);
 			}
 		}
 
@@ -98,20 +147,41 @@ int main(int argc, char** argv) {
 		float dt = (curTime - prevTime) / 1000.f;
 		prevTime = curTime;
 
+		constexpr float moveSpeed = 1.f;
+		const Uint8* keys = SDL_GetKeyboardState(nullptr);
+		if (keys[SDL_SCANCODE_ESCAPE]) {
+			quit = true;
+		}
+		if (keys[SDL_SCANCODE_S]) {
+			view.translate(0.f, 0.f, -moveSpeed * dt);
+		}
+		if (keys[SDL_SCANCODE_W]) {
+			view.translate(0.f, 0.f, moveSpeed * dt);
+		}
+		if (keys[SDL_SCANCODE_A]) {
+			view.translate(moveSpeed * dt, 0.f, 0.f);
+		}
+		if (keys[SDL_SCANCODE_D]) {
+			view.translate(-moveSpeed * dt, 0.f, 0.f);
+		}
+
 		constexpr float speed = 1.f;
 		model.rotate(speed * dt, speed * dt, speed * dt);
 		
-		glClearColor(0.f, 0.1f, 0.3f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindVertexArray(vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		shader.use();
 
 		shader.setMatrix("model", model);
 		shader.setMatrix("view", view);
 		shader.setMatrix("projection", projection);
+		shader.setVector("objectColor", objColor);
+		shader.setVector("lightPos", lightPos);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		
 		SDL_GL_SwapWindow(window);
 	}
