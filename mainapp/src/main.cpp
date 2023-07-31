@@ -3,6 +3,7 @@
 #include <iostream>
 #include "Shader.h"
 #include "math/math.h"
+#include <Camera.h>
 
 int main(int argc, char** argv) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -117,20 +118,18 @@ int main(int argc, char** argv) {
         return -2;
     }
 
-	auto model = Matrix<4, 4, float>::unit();
-
-	auto view = Matrix<4, 4, float>::unit();
-	view.set(3, 2, -3);
-
-	auto projection = Matrix<4, 4, float>::perspective(std::numbers::pi / 4., 800.f / 600.f, 0.1f, 100.f);
+	auto model = Mat4f::unit();
+	auto projection = Mat4f::perspective((float)(std::numbers::pi / 4.), 800.f / 600.f, 0.1f, 100.f);
 	
 	bool quit = false;
 	SDL_Event event;
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	auto objColor = Matrix<3, 1, float>(1.f, 0.5f, 0.31f);
-	auto lightPos = Matrix<3, 1, float>(1.2f, 1.0f, 2.0f);
+	auto objColor = Vec3f(1.f, 0.5f, 0.31f);
+	auto lightPos = Vec3f(1.2f, 1.0f, 2.0f);
+
+	auto camera = Camera(Vec3f(0.f, 0.f, 3.f));
 
 	uint32_t prevTime = SDL_GetTicks();
 	while (!quit) {
@@ -138,8 +137,7 @@ int main(int argc, char** argv) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
 			} else if (event.type == SDL_MOUSEMOTION) {
-				view.rotateXZ(-event.motion.xrel / 100.);
-				view.rotateYZ(-event.motion.yrel / 100.);
+				camera.processMouse((float)event.motion.xrel, (float)event.motion.yrel);
 			}
 		}
 
@@ -147,26 +145,20 @@ int main(int argc, char** argv) {
 		float dt = (curTime - prevTime) / 1000.f;
 		prevTime = curTime;
 
-		constexpr float moveSpeed = 1.f;
+		constexpr float moveSpeed = 2.f;
 		const Uint8* keys = SDL_GetKeyboardState(nullptr);
 		if (keys[SDL_SCANCODE_ESCAPE]) {
 			quit = true;
 		}
-		if (keys[SDL_SCANCODE_S]) {
-			view.translate(0.f, 0.f, -moveSpeed * dt);
-		}
-		if (keys[SDL_SCANCODE_W]) {
-			view.translate(0.f, 0.f, moveSpeed * dt);
-		}
-		if (keys[SDL_SCANCODE_A]) {
-			view.translate(moveSpeed * dt, 0.f, 0.f);
-		}
-		if (keys[SDL_SCANCODE_D]) {
-			view.translate(-moveSpeed * dt, 0.f, 0.f);
-		}
+		if (keys[SDL_SCANCODE_W]) camera.processMove(CameraDirection::FORWARD, dt);
+		if (keys[SDL_SCANCODE_A]) camera.processMove(CameraDirection::LEFT, dt);
+		if (keys[SDL_SCANCODE_S]) camera.processMove(CameraDirection::BACKWARD, dt);
+		if (keys[SDL_SCANCODE_D]) camera.processMove(CameraDirection::RIGHT, dt);
+		if (keys[SDL_SCANCODE_SPACE]) camera.processMove(CameraDirection::UP, dt);
+		if (keys[SDL_SCANCODE_LSHIFT]) camera.processMove(CameraDirection::DOWN, dt);
 
 		constexpr float speed = 1.f;
-		model.rotate(speed * dt, speed * dt, speed * dt);
+		//model.rotate(speed * dt, speed * dt, speed * dt);
 		
 		glClearColor(0.f, 0.f, 0.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,10 +168,11 @@ int main(int argc, char** argv) {
 		shader.use();
 
 		shader.setMatrix("model", model);
-		shader.setMatrix("view", view);
+		shader.setMatrix("view", camera.getViewMatrix());
 		shader.setMatrix("projection", projection);
 		shader.setVector("objectColor", objColor);
 		shader.setVector("lightPos", lightPos);
+		shader.setVector("viewPos", camera.getPos());
 
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		

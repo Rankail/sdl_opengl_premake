@@ -275,7 +275,7 @@ public:
     friend Type operator /(Type const& m, U const& s) {
         auto result = Type();
         for (int i = 0; i < M * N; i++) {
-            result.set(i, m.get(i) / s);
+            result.set(i, m.get(i) / static_cast<T>(s));
         }
         return result;
     }
@@ -523,7 +523,7 @@ public:
         return os;
     }
 
-    double norm() const requires (N == 1) {
+    T norm() const requires (N == 1) {
         return std::sqrt(*this * *this);
     }
 
@@ -581,6 +581,14 @@ public:
 
     Type rotated(double x, double y, double z) const MAT_QUAD_MIN(3) {
         return *this * rotation(x, y, z);
+    }
+
+    template<typename U> requires (std::is_convertible_v<U, T> && M == N && M >= 3)
+    Type rotated(Matrix<3, 1, U> const& rot) const {
+        return *this * rotation(
+            static_cast<T>(rot.get(0)),
+            static_cast<T>(rot.get(1)),
+            static_cast<T>(rot.get(2)));
     }
 
     Type rotatedYZ(double a) const MAT_QUAD_MIN(3) {
@@ -661,9 +669,9 @@ public:
         result.set(0, 2, -f.get(0));
         result.set(1, 2, -f.get(1));
         result.set(2, 2, -f.get(2));
-        result.set(0, 0, -(s * eye));
-        result.set(1, 0, -(u * eye));
-        result.set(2, 0, f * eye);
+        result.set(3, 0, -(s * eye));
+        result.set(3, 1, -(u * eye));
+        result.set(3, 2, f * eye);
 
         return result;
     }
@@ -724,6 +732,15 @@ public:
         return result;
     }
 
+    template<typename U> requires (std::is_convertible_v<U, T> && M == N && M == 4)
+    Type translated(Matrix<3, 1, U> const& m) const {
+        auto result = Type(*this);
+        result.set(3, 0, result.get(3, 0) + static_cast<T>(m.get(0)));
+        result.set(3, 1, result.get(3, 1) + static_cast<T>(m.get(1)));
+        result.set(3, 2, result.get(3, 2) + static_cast<T>(m.get(2)));
+        return result;
+    }
+
     Type translated(T dx, T dy, T dz) const requires (M == N && M == 4) {
         auto m = Type(*this);
         m.set(3, 0, m.get(3, 0) + dx);
@@ -737,5 +754,18 @@ public:
     }
 
 };
+
+inline float degToRad(float deg) {
+    return (float)(deg / 180. * std::numbers::pi);
+}
+
+inline float radToDeg(float rad) {
+    return (float)(rad / std::numbers::pi * 180.);
+}
+
+typedef Matrix<2, 1, float> Vec2f;
+typedef Matrix<3, 1, float> Vec3f;
+typedef Matrix<3, 3, float> Mat3f;
+typedef Matrix<4, 4, float> Mat4f;
 
 #endif //SDL_GL_TEST_MATH_H
